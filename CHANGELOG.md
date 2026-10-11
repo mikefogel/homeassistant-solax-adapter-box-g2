@@ -4,6 +4,16 @@ All notable changes to this integration are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### 📚 Documentation
+
+- 🔎 `spec.md` collects further research: what the SolaXCloud monitoring
+  page shows (status, analog output, current step), how SolaX encodes
+  numbers (÷10/÷100, signed 16-bit, 32-bit over two positions), and that
+  the inverter only reports whether the box is connected. The value table
+  has refined guesses for `Data 06`–`Data 17`, and a new source list.
+
 ## [0.0.1] - 2026-10-11
 
 🌟 **Highlights:** the first version – it records every value of your

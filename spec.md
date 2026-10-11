@@ -92,13 +92,13 @@ be checked with the procedure of §7, **unknown** = no idea yet):
 | 3     | 11       | confirmed  | device clock: day                                           |
 | 4     | 10       | confirmed  | device clock: month                                         |
 | 5     | 26       | confirmed  | device clock: year − 2000                                   |
-| 6–9   | 0        | hypothesis | dry contacts DO1–DO4 (0 = open, 1 = closed); SolaXCloud showed all four open at the same time |
-| 10    | 0        | hypothesis | analog output voltage (the app showed 0 V)                  |
-| 11    | 1        | unknown    | status value (0/1)                                          |
+| 6–9   | 0        | hypothesis | dry contacts DO1–DO4 (0 = open, 1 = closed); SolaXCloud showed all four open at the same time. Alternative: one of them is the current step 0–15, with DO1–DO4 as its bits |
+| 10    | 0        | hypothesis | analog output voltage (the app showed 0 V), possibly scaled ÷10 or ÷100 |
+| 11    | 1        | unknown    | status value (0/1), e.g. the box status shown in the app    |
 | 12    | 0        | unknown    | status value (0/1)                                          |
-| 13    | 409      | unknown    | measurement, possibly scaled ×0.1 (e.g. 40.9) or a power in W |
+| 13    | 409      | unknown    | measurement, possibly scaled ÷10 (40.9) or ÷100 (4.09), or a power in W; may be the low word of a 32-bit value with index 14 |
 | 14    | 75       | hypothesis | battery SOC in % (the box receives it from the inverter for its SOC thresholds) |
-| 15–17 | 1, 0, 1  | unknown    | status values (0/1), e.g. mode (smart/manual), switch, online |
+| 15–17 | 1, 0, 1  | unknown    | status values (0/1), e.g. mode (smart/manual), remote switch, schedule active |
 
 Open questions about the clock: SolaXCloud reported its last update at
 22:41 on the same day, while the box reported 09:42. Either the request was
@@ -116,6 +116,34 @@ which is therefore likely to appear in `Data` or `ReadSetData`:
   battery SOC from the inverter (for the SG Ready signal conditions),
 - per load (up to 4 in SG Ready mode): ON/OFF thresholds, minimum ON time,
   maximum ON time per day.
+
+Further findings from the research (sources in §3f):
+
+- The SolaXCloud monitoring page of the box shows exactly three values:
+  **status**, **analog output** and **current step of the dry contacts**.
+  These are the most likely contents of `Data[6..17]`.
+- In SG Ready mode the SolaX solution document says only DO1 switches by
+  default; the user manual allows up to 4 loads on DO1–DO4. The observed
+  installation has 4 water heaters (load IDs `…01`–`…04`), so all four
+  contacts are expected to be used.
+- The box changes the step at most once about every 10 seconds; the default
+  polling interval of 10 s (§4b) therefore sees every step.
+- A schedule (up to 6 time windows) has the highest priority over all other
+  conditions – this is what the correlation procedure of §7 uses.
+- There is a "fallback step" for when communication with the inverter is
+  lost.
+- How SolaX encodes numbers elsewhere (EV charger, same local API):
+  voltages and currents scaled ÷10 or ÷100, negative values as signed 16-bit
+  numbers (attribute `int16`, §6a), 32-bit values as two consecutive
+  positions (low word first, then high word).
+- The inverter's Modbus map only reports whether the Adapter Box is
+  connected (input register `0xA1`, 0 = disconnected, 1 = connected); it has
+  no dry contact states. The box's own local API (§3a) is therefore the
+  only local source for them.
+- The official SolaXCloud user API (V2) only returns inverter values; it
+  documents no Adapter Box fields.
+- Risk: on some SolaX WiFi modules a firmware update removed the local API.
+  Firmware `008.00` of the box answers it.
 
 ### 3d. Decoded values
 
@@ -140,6 +168,25 @@ integration is reloaded. A connection error does not count as "not
 supported".
 
 Write operations (e.g. `setReg`) must never be sent.
+
+### 3f. Sources
+
+- SolaX, *Adapter Box G2 User Manual* (chapters 2 and 5):
+  <https://au.solaxpower.com/uploads/file/adapter-box-g2-user-manual-en.pdf>
+- SolaX, *SolaX Heat Pump Solution – Adapter Box G2* V1.0:
+  <https://www.sunfix.cz/wp-content/uploads/2024/04/ESS-Adapter-Box-Solution.pdf>
+- SolaX, *Adapter Box G2 datasheet*:
+  <https://solaxpower.com/uploads/file/solax-adpter-box-g2-datasheet-en.pdf>
+- Local API of SolaX devices (request format, `SD` serials = Adapter Box,
+  EV charger data map): <https://github.com/nazar-pc/solax-local-api-docs>
+- SolaX EV charger integration (`ReadSetData`):
+  <https://github.com/PatrikTrestik/homeassistant-solax-http>
+- SolaX inverter Modbus integration (register `0xA1`):
+  <https://github.com/wills106/homeassistant-solax-modbus>
+- SolaXCloud User API V2:
+  <https://global.solaxcloud.com/blue/4/user_api/2024/SolaXCloud_User_API_V2.pdf>
+- Local API removed by a firmware update on other SolaX modules:
+  <https://neilturner.me.uk/2024/10/26/so-long-solax-local-api/>
 
 ## 4. Configuration
 
