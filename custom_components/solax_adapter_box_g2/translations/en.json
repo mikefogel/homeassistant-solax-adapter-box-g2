@@ -1,0 +1,61 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SolaX Adapter Box G2",
+        "description": "Connect to the Adapter Box G2 in your local network. Only values are read; nothing is changed on the box.",
+        "data": {
+          "host": "Host",
+          "password": "Registration number"
+        },
+        "data_description": {
+          "host": "IP address or host name of the box, e.g. 192.168.1.50.",
+          "password": "The registration number from SolaXCloud (device details). It is the same as the serial number and starts with SD."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "The box cannot be reached. Check the IP address and that the box is online.",
+      "invalid_response": "The box answered, but not with data. Check the registration number.",
+      "unknown": "Unexpected error. Details are in the Home Assistant log."
+    },
+    "abort": {
+      "already_configured": "This box is already set up. Its IP address has been updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "data": {
+          "scan_interval": "Polling interval (seconds)"
+        },
+        "data_description": {
+          "scan_interval": "How often the box is read (5–300 seconds)."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "raw_data": {
+        "name": "Data {index}"
+      },
+      "raw_info": {
+        "name": "Information {index}"
+      },
+      "raw_set": {
+        "name": "Setting {index}"
+      },
+      "device_time": {
+        "name": "Device time"
+      },
+      "device_type": {
+        "name": "Device type"
+      },
+      "device_kind": {
+        "name": "Device kind"
+      }
+    }
+  }
+}

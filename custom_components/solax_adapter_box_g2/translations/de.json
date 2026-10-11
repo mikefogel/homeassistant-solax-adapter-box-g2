@@ -1,0 +1,61 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SolaX Adapter Box G2",
+        "description": "Verbindung zur Adapter Box G2 im lokalen Netz. Es werden nur Werte gelesen; an der Box wird nichts verändert.",
+        "data": {
+          "host": "Host",
+          "password": "Registrierungsnummer"
+        },
+        "data_description": {
+          "host": "IP-Adresse oder Hostname der Box, z. B. 192.168.1.50.",
+          "password": "Die Registrierungsnummer aus der SolaXCloud (Gerätedetails). Sie ist gleich der Seriennummer und beginnt mit SD."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Die Box ist nicht erreichbar. Bitte IP-Adresse prüfen und ob die Box online ist.",
+      "invalid_response": "Die Box hat geantwortet, aber keine Daten geliefert. Bitte die Registrierungsnummer prüfen.",
+      "unknown": "Unerwarteter Fehler. Details stehen im Home-Assistant-Protokoll."
+    },
+    "abort": {
+      "already_configured": "Diese Box ist bereits eingerichtet. Ihre IP-Adresse wurde aktualisiert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Optionen",
+        "data": {
+          "scan_interval": "Abfrageintervall (Sekunden)"
+        },
+        "data_description": {
+          "scan_interval": "Wie oft die Box gelesen wird (5–300 Sekunden)."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "raw_data": {
+        "name": "Data {index}"
+      },
+      "raw_info": {
+        "name": "Information {index}"
+      },
+      "raw_set": {
+        "name": "Einstellung {index}"
+      },
+      "device_time": {
+        "name": "Gerätezeit"
+      },
+      "device_type": {
+        "name": "Gerätetyp"
+      },
+      "device_kind": {
+        "name": "Geräteart"
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+# Pulls in a pinned, compatible pytest + homeassistant (2025.1.4) +
+# pytest-asyncio/pytest-socket combination (spec.md 9). Do not pin pytest or
+# homeassistant separately here, or pip's resolver can pick a combination
+# this package was never tested against.
+pytest-homeassistant-custom-component==0.13.205
