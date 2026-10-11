@@ -255,7 +255,13 @@ The user cannot watch the box all the time. Therefore:
 ## 9. Packaging, tests, and release
 
 - Domain `solax_adapter_box_g2`, `iot_class: local_polling`, no external
-  Python requirements; translations in English and German.
+  Python requirements; translations in English and German with exactly the
+  same keys.
+- Set up through the UI only: YAML configuration is rejected
+  (`CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)`).
+- Brand icons inside the integration: `brand/icon.png` (256×256) and
+  `brand/icon@2x.png` (512×512).
+- The version in `manifest.json` equals the release tag without `v`.
 - HACS repository (`hacs.json`); tests, tools, and developer files are
   excluded from release archives with `export-ignore` in `.gitattributes`.
 - Tests with `pytest-homeassistant-custom-component`: pinned version in

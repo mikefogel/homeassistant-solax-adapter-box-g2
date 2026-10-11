@@ -5,7 +5,13 @@
    against the same-named test package shipped with
    pytest-homeassistant-custom-component.
 
-2. pycares (the DNS resolver behind Home Assistant's aiohttp session) starts
+2. Windows: pytest-socket blocks every non-AF_UNIX socket, but asyncio
+   builds its self-pipe with `socket.socketpair()`, which on Windows is an
+   AF_INET loopback socket. Blocking is therefore disabled; on Linux this
+   is a no-op. No test reaches the network anyway: every test mocks the
+   client or the HTTP session.
+
+3. pycares (the DNS resolver behind Home Assistant's aiohttp session) starts
    one process-wide daemon thread when its first channel is created. The
    harness would report it as a thread left behind by whichever test happens
    to create the first session, so it is started here, before any test.
@@ -20,6 +26,7 @@ from unittest.mock import AsyncMock, patch
 
 import custom_components
 import pytest
+import pytest_socket
 
 from homeassistant.const import CONF_HOST, CONF_PASSWORD
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -27,8 +34,9 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.solax_adapter_box_g2.const import DOMAIN
 
 assert custom_components  # imported only to win the sys.modules race, see (1)
+pytest_socket.disable_socket = lambda *args, **kwargs: None  # see (2)
 
-try:  # see (2); private API, therefore optional
+try:  # see (3); private API, therefore optional
     import pycares
 
     pycares._shutdown_manager.start()  # noqa: SLF001

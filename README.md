@@ -1,5 +1,9 @@
 # SolaX Adapter Box G2 for Home Assistant
 
+[![Tests](https://github.com/mikefogel/homeassistant-solax-adapter-box-g2/actions/workflows/tests.yml/badge.svg)](https://github.com/mikefogel/homeassistant-solax-adapter-box-g2/actions/workflows/tests.yml)
+[![Validate](https://github.com/mikefogel/homeassistant-solax-adapter-box-g2/actions/workflows/validate.yml/badge.svg)](https://github.com/mikefogel/homeassistant-solax-adapter-box-g2/actions/workflows/validate.yml)
+[![Latest Home Assistant](https://github.com/mikefogel/homeassistant-solax-adapter-box-g2/actions/workflows/latest-home-assistant.yml/badge.svg)](https://github.com/mikefogel/homeassistant-solax-adapter-box-g2/actions/workflows/latest-home-assistant.yml)
+
 A Home Assistant custom integration for the **SolaX Adapter Box G2**, the
 box that switches heat pumps and water heaters through four dry contacts
 (DO1–DO4) or a 0–10 V output, based on PV surplus.
