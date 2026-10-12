@@ -173,9 +173,10 @@ integration and the SolaX EV charger integration:
   - The grid data source of the box is *Inverter*; there is no meter at the
     box (the only meter is connected to the inverter), so the source cannot
     be switched to *Meter* for a comparison.
-  - Still open: the inverter's export control (forum reports: an export
-    limit of 0 W makes the box switch erratically) and the box's own
-    thresholds.
+  - *Export control* of the inverter (SolaXCloud: *Einspeisebgrz*,
+    user setting) is **10000 W**, above the inverter's rated power of
+    8 kW, so export is never limited – not the cause.
+  - Still open: the box's own thresholds and its internal calculation.
 
 **Device clock – observed on 2026-10-12:** the box's clock runs exactly
 **4 hours behind** local time (Europe/Berlin, CEST = UTC+2): diagnostics
@@ -538,8 +539,8 @@ The user cannot watch the box all the time. Therefore:
 
 - Meaning of the `Information` array (§3b).
 - Confirm `Data[13]` as the box's surplus calculation (§3c) and find the
-  cause of its lower limit of about −2100 W (*Pgrid Bias* ruled out;
-  export control and box thresholds open).
+  cause of its lower limit of about −2100 W (*Pgrid Bias* and export
+  control ruled out; box thresholds open).
 - Meaning of `Data[10]`, `Data[11]`, `Data[15..17]`, including the cause of
   the joint short drops of `Data[15]` and `Data[17]`; then add decoded
   entities (§6c).

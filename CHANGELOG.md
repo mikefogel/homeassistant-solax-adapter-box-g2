@@ -9,7 +9,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ### 📚 Documentation
 
 - 🔍 Data 13 is now described as the box's likely own surplus calculation;
-  *Pgrid Bias* is ruled out as the cause of its −2100 W limit.
+  *Pgrid Bias* and the export limit are ruled out as the cause of its
+  −2100 W limit.
 - 🗣️ Hints from forums and the SolaX knowledge base added to the spec
   (hysteresis, common COM terminal, analog output, grid data source).
 
