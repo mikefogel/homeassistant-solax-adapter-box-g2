@@ -99,8 +99,8 @@ be checked with the procedure of §7, **unknown** = no idea yet):
 | 10    | 0        | hypothesis | analog output voltage (the app showed 0 V), possibly scaled ÷10 or ÷100 |
 | 11    | 1        | unknown    | status value (0/1), e.g. the box status shown in the app    |
 | 12    | 0        | unknown    | status value (0/1)                                          |
-| 13    | 409      | unknown    | measurement, possibly scaled ÷10 (40.9) or ÷100 (4.09), or a power in W; may be the low word of a 32-bit value with index 14 |
-| 14    | 75       | hypothesis | battery SOC in % (the box receives it from the inverter for its SOC thresholds) |
+| 13    | 409      | unknown    | measurement, possibly scaled ÷10 (40.9) or ÷100 (4.09), or a power in W (not part of a 32-bit pair with index 14, which is the SOC) |
+| 14    | 75       | confirmed  | battery SOC in %, received from the inverter (unscaled, 0–100) |
 | 15–17 | 1, 0, 1  | unknown    | status values (0/1), e.g. mode (smart/manual), remote switch, schedule active |
 
 **Relays `Data[6..9]` – confirmed on 2026-10-12** on real hardware
@@ -120,6 +120,12 @@ When stepping down, the box opened DO4, DO3 and DO2 one after another,
 about 10 seconds apart, and closed DO2 again 30 seconds later. The stage
 powers are a property of this installation, not of the box; the box only
 reports the relay states.
+
+**Battery SOC `Data[14]` – confirmed on 2026-10-12:** over 20 hours
+(night discharge from about 72 % to 41 %, charge to 99–100 % by noon)
+`Data[14]` follows the inverter's *Battery Capacity* (SolaX inverter
+integration in Home Assistant) step by step and shows the same value. The
+box receives it from the inverter for its SOC thresholds.
 
 Open questions about the clock: SolaXCloud reported its last update at
 22:41 on the same day, while the box reported 09:42. Either the request was
@@ -174,6 +180,7 @@ Only **confirmed** values are decoded:
 - `Data[0..5]` → device date and time (§6b).
 - `Data[6..9]` → relay states DO1–DO4; the entities follow in the next
   step (§6c).
+- `Data[14]` → battery SOC in %; the entity follows in the next step (§6c).
 
 A hypothesis becomes a decoded entity (e.g. one binary sensor per dry
 contact) only after it is confirmed with §7 and this table is updated.
@@ -293,7 +300,8 @@ sensor:
 ### 6c. Planned (after confirmation, §7)
 
 - one binary sensor per relay DO1–DO4 from `Data[6..9]` (confirmed, §3c),
-- analog output voltage, gear, mode, switch, battery SOC – as far as found.
+- battery SOC sensor (%, device class battery) from `Data[14]` (confirmed, §3c),
+- analog output voltage, gear, mode, switch – as far as found.
 
 ## 7. Correlation support
 
@@ -365,8 +373,9 @@ The user cannot watch the box all the time. Therefore:
 - Get the complete `ReadRealTimeData` answer (the observed line was cut off
   after `Data`).
 - Find out whether the box answers `ReadSetData`.
-- Add the relay entities for the confirmed `Data[6..9]` (§6c).
-- Confirm or reject the remaining hypotheses of §3c (`Data[10..17]`) with
+- Add the entities for the confirmed `Data[6..9]` and `Data[14]` (§6c).
+- Confirm or reject the remaining hypotheses of §3c (`Data[10..13]`,
+  `Data[15..17]`) with
   the procedure of §7, then add decoded entities (§6c).
 - Confirm that `devKind` 8 identifies the Adapter Box G2 (other SolaX
   devices would then be rejected or handled separately).
