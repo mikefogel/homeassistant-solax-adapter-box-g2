@@ -19,8 +19,8 @@ box that switches heat pumps and water heaters through four dry contacts
 
 - Local polling over the box's HTTP API, no cloud needed.
 - Setup in the UI with IP address and registration number.
-- One sensor per raw value (`Data 00`, `Data 01`, …), named after its
-  position in the box's answer, with long-term statistics.
+- One sensor per not yet decoded raw value (`Data 10`, `Data 11`, …), named
+  after its position in the box's answer, with long-term statistics.
 - Extra attributes `int16` (signed value) and `bits` (16-digit binary) on
   every integer value, to spot negative powers and packed status flags.
 - Decoded entities: *Relay DO1–DO4*, *Active relays*, *Grid power*,
@@ -76,20 +76,17 @@ curl -d "optType=ReadRealTimeData&pwd=<registration number>" http://<IP address>
 | Data 13 power         | W, signed (`Data 13`) – meaning still open, see below      |
 | Battery               | battery SOC in % from the inverter (`Data 14`)             |
 
-**Raw value entities**
+**Raw value entities** – only for positions that are not decoded yet;
+`Data 00`–`Data 09`, `Data 12`, `Data 13` and `Data 14` are shown by the
+decoded entities above.
 
 | Entity              | Meaning                                                    |
 |---------------------|------------------------------------------------------------|
-| Data 00 – Data 05   | the box's clock (hour, minute, second, day, month, year); disabled by default |
-| Data 06 – Data 09   | relays DO1–DO4: 0 = open, 1 = closed (confirmed)           |
-| Data 10 – Data 11   | not decoded yet – see [What we know](#what-we-know-so-far) |
-| Data 12             | grid power in W: + export, − import (confirmed)            |
-| Data 13             | not decoded yet – see [What we know](#what-we-know-so-far) |
-| Data 14             | battery SOC in %, from the inverter (confirmed)            |
+| Data 10, Data 11    | not decoded yet – see [What we know](#what-we-know-so-far) |
 | Data 15 – Data 17   | not decoded yet – see [What we know](#what-we-know-so-far) |
 | Information xx      | only if the box sends an `Information` array               |
 | Setting xx          | only if the box answers `ReadSetData` (not firmware 008.00) |
-| Device time         | `Data 00`–`Data 05` combined                               |
+| Device time         | the box's clock (`Data 00`–`Data 05`)                      |
 | Device kind / type  | `devKind` and `type` of the answer                         |
 
 ## What we know so far

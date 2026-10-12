@@ -52,25 +52,54 @@ async def test_device_is_created(
     assert device.serial_number == SERIAL
 
 
-async def test_one_sensor_per_data_index(
+async def test_one_sensor_per_unknown_data_index(
     hass: HomeAssistant, mock_client: AsyncMock, config_entry: MockConfigEntry
 ) -> None:
-    """Every Data index has a sensor named after its index (spec.md 6a)."""
+    """Undecoded Data positions get a raw sensor named after the index (spec.md 6a)."""
+    await _setup(hass, config_entry)
+
+    for index in (10, 11, 15, 16, 17):
+        assert hass.states.get(_entity_id(hass, f"data_{index:02d}")) is not None
+
+    state = hass.states.get(_entity_id(hass, "data_11"))
+    assert state.state == "1"
+    assert state.name == "Adapter Box G2 Data 11"
+    assert state.attributes["state_class"] == "measurement"
+    assert state.attributes["int16"] == 1
+    assert state.attributes["bits"] == "0000000000000001"
+
+
+async def test_no_raw_sensor_for_decoded_positions(
+    hass: HomeAssistant, mock_client: AsyncMock, config_entry: MockConfigEntry
+) -> None:
+    """Decoded positions are shown by their decoded entities only (spec.md 6a)."""
     await _setup(hass, config_entry)
     registry = er.async_get(hass)
 
-    for index in range(18):
-        entry = registry.async_get(_entity_id(hass, f"data_{index:02d}"))
-        assert entry is not None
-        # The clock is disabled by default.
-        assert (entry.disabled_by is not None) == (index < 6)
+    for index in (*range(10), 12, 13, 14):
+        assert (
+            registry.async_get_entity_id("sensor", DOMAIN, f"{SERIAL}_data_{index:02d}")
+            is None
+        ), index
 
-    state = hass.states.get(_entity_id(hass, "data_13"))
-    assert state.state == "409"
-    assert state.name == "Adapter Box G2 Data 13"
-    assert state.attributes["state_class"] == "measurement"
-    assert state.attributes["int16"] == 409
-    assert state.attributes["bits"] == "0000000110011001"
+
+async def test_old_raw_sensors_of_decoded_positions_are_removed(
+    hass: HomeAssistant, mock_client: AsyncMock, config_entry: MockConfigEntry
+) -> None:
+    """Raw sensors from earlier versions are removed from the registry (spec.md 6a)."""
+    config_entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    for key in ("data_00", "data_06", "data_14", "data_15"):
+        registry.async_get_or_create(
+            "sensor", DOMAIN, f"{SERIAL}_{key}", config_entry=config_entry
+        )
+
+    assert await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    for key in ("data_00", "data_06", "data_14"):
+        assert registry.async_get_entity_id("sensor", DOMAIN, f"{SERIAL}_{key}") is None
+    assert hass.states.get(_entity_id(hass, "data_15")).state == "1"
 
 
 async def test_information_array_gets_sensors(
@@ -162,7 +191,7 @@ async def test_connection_loss_and_recovery(
 ) -> None:
     """Entities become unavailable and recover by themselves (spec.md 5)."""
     await _setup(hass, config_entry)
-    entity_id = _entity_id(hass, "data_14")
+    entity_id = _entity_id(hass, "battery_soc")
 
     mock_client.read_realtime.side_effect = CannotConnect("down")
     await _next_poll(hass)

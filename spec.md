@@ -350,7 +350,11 @@ model *Adapter Box G2*, firmware = `ver`, serial number = `sn`.
 ### 6a. Raw value sensors
 
 For each index of each array the box reports, the integration creates one
-sensor:
+sensor – **except for the `Data` positions that have a decoded entity**
+(§6b): `Data[0..9]`, `Data[12]`, `Data[13]` and `Data[14]`. Their values are
+shown by the decoded entities only; a raw sensor would show the same value
+twice. With firmware `008.00` this leaves the raw sensors `Data 10`,
+`Data 11`, `Data 15`–`Data 17` and `Information 00`–`Information 09`.
 
 | Array                            | Entity name (en / de)              | Unique ID suffix |
 |----------------------------------|------------------------------------|------------------|
@@ -365,8 +369,10 @@ sensor:
 - Integer values 0–65535 have two extra attributes, recorded with the
   history: `int16` (the value as signed 16-bit number, for negative powers)
   and `bits` (16-digit binary, for status words that pack several flags).
-- `Data 00`–`Data 05` (the clock, §3c) are disabled by default because they
-  change every cycle; the *Device time* sensor shows them combined.
+- Raw sensors of decoded positions that exist from earlier versions
+  (up to 0.1.0) are removed from Home Assistant's entity registry when the
+  integration is set up, so no orphaned entities remain. Their recorded
+  history is no longer shown; the decoded entities have their own history.
 - When an array becomes longer later (e.g. after a firmware update), the new
   indices get sensors without a reload. When it becomes shorter, the
   missing indices become unavailable.
@@ -455,7 +461,9 @@ The user cannot watch the box all the time. Therefore:
 - [ ] Wrong host → "cannot connect"; non-JSON answer → "invalid response";
       same box twice → "already configured" with updated host.
 - [ ] Every index of `Data`, `Information`, and `ReadSetData`'s `Data` has a
-      sensor named after its index; clock indices are disabled by default.
+      sensor named after its index, except the decoded `Data` positions
+      (§6a); raw sensors of decoded positions from earlier versions are
+      removed from the entity registry.
 - [ ] Integer raw sensors carry `int16` and `bits` attributes.
 - [ ] *Device time* shows the box's clock.
 - [ ] Relay DO1–DO4 follow `Data[6..9]`; *Active relays* counts the closed

@@ -12,14 +12,16 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfPower
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
 from . import AdapterBoxConfigEntry
 from .const import (
     BATTERY_SOC_INDEX,
-    CLOCK_INDICES,
     DATA13_INDEX,
+    DECODED_DATA_INDICES,
+    DOMAIN,
     GRID_POWER_INDEX,
     RELAY_INDICES,
     SOURCE_DATA,
@@ -36,6 +38,7 @@ async def async_setup_entry(
     """Set up the sensors; new array indices are added later (spec.md 6a)."""
     coordinator = entry.runtime_data
     known: set[tuple[str, int]] = set()
+    _remove_old_raw_sensors(hass, entry)
 
     @callback
     def _add_new_raw_sensors() -> None:
@@ -44,6 +47,8 @@ async def async_setup_entry(
         new: list[SensorEntity] = []
         for source, values in coordinator.data.arrays.items():
             for index, value in enumerate(values):
+                if source == SOURCE_DATA and index in DECODED_DATA_INDICES:
+                    continue
                 if (source, index) not in known:
                     known.add((source, index))
                     new.append(RawValueSensor(coordinator, source, index, value))
@@ -83,6 +88,19 @@ async def async_setup_entry(
     entry.async_on_unload(coordinator.async_add_listener(_add_new_raw_sensors))
 
 
+@callback
+def _remove_old_raw_sensors(hass: HomeAssistant, entry: AdapterBoxConfigEntry) -> None:
+    """Remove raw sensors of decoded positions from earlier versions (spec.md 6a)."""
+    registry = er.async_get(hass)
+    serial = entry.unique_id or entry.entry_id
+    for index in DECODED_DATA_INDICES:
+        entity_id = registry.async_get_entity_id(
+            "sensor", DOMAIN, f"{serial}_{SOURCE_DATA}_{index:02d}"
+        )
+        if entity_id is not None:
+            registry.async_remove(entity_id)
+
+
 def raw_attributes(value: Any) -> dict[str, Any] | None:
     """Return `int16` and `bits` for integers 0-65535 (spec.md 6a)."""
     if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= 0xFFFF:
@@ -111,8 +129,6 @@ class RawValueSensor(AdapterBoxEntity, SensorEntity):
         self._attr_translation_placeholders = {"index": f"{index:02d}"}
         if isinstance(first_value, (int, float)) and not isinstance(first_value, bool):
             self._attr_state_class = SensorStateClass.MEASUREMENT
-        if source == SOURCE_DATA and index in CLOCK_INDICES:
-            self._attr_entity_registry_enabled_default = False
 
     @property
     def _value(self) -> Any:

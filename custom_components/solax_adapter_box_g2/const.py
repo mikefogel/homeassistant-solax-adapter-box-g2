@@ -40,5 +40,10 @@ GRID_POWER_INDEX: Final = 12
 DATA13_INDEX: Final = 13
 BATTERY_SOC_INDEX: Final = 14
 
+# Data positions shown by decoded entities only, without raw sensor (spec.md 6a).
+DECODED_DATA_INDICES: Final = frozenset(
+    (*CLOCK_INDICES, *RELAY_INDICES, GRID_POWER_INDEX, DATA13_INDEX, BATTERY_SOC_INDEX)
+)
+
 # Entries kept in the diagnostics change log (spec.md 7).
 CHANGE_LOG_SIZE: Final = 500

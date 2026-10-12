@@ -4,6 +4,23 @@ All notable changes to this integration are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### ⚠️ Please check after updating
+
+- 🧹 The raw sensors **Data 00–Data 09, Data 12, Data 13 and Data 14** are
+  removed automatically – their values are shown by *Device time*,
+  *Relay DO1–DO4*, *Grid power*, *Data 13 power* and *Battery*. If an
+  automation, script or dashboard uses one of the removed sensors (e.g.
+  `sensor.adapter_box_g2_data_14`), switch it to the matching new entity.
+  The history of the removed sensors is no longer shown.
+
+### 🔄 Changed
+
+- 🗂️ Raw `Data xx` sensors exist only for values that are not decoded yet
+  (`Data 10`, `Data 11`, `Data 15`–`Data 17`), so every value appears only
+  once on the device page.
+
 ## [0.1.0] - 2026-10-12
 
 🌟 **Highlights:** the first decoded entities – relays, grid power and
