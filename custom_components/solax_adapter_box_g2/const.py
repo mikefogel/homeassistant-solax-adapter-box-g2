@@ -34,5 +34,11 @@ SOURCE_SET: Final = "set"
 # Data[0..5] is the device clock (spec.md 3c).
 CLOCK_INDICES: Final = range(6)
 
+# Decoded positions in Data (spec.md 3d).
+RELAY_INDICES: Final = (6, 7, 8, 9)  # DO1-DO4
+GRID_POWER_INDEX: Final = 12
+DATA13_INDEX: Final = 13
+BATTERY_SOC_INDEX: Final = 14
+
 # Entries kept in the diagnostics change log (spec.md 7).
 CHANGE_LOG_SIZE: Final = 500

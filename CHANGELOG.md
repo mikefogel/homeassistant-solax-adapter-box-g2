@@ -6,6 +6,20 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+🌟 **Highlights:** the first decoded entities – relays, grid power and
+battery with proper units, ready for dashboards and automations.
+
+### ✨ Added
+
+- 🔌 **Relay DO1–DO4** as binary sensors (on = relay closed).
+- 🔢 **Active relays**: how many relays are closed (0–4) – with a staged
+  heating rod this is the current stage.
+- ⚡ **Grid power** in W (+ export, − import).
+- 🔋 **Battery** SOC in %, as the box receives it from the inverter.
+- 📈 **Data 13 power** in W, so `Data 13` can be charted with the right unit
+  while its meaning is still being investigated.
+- 🗂️ The raw `Data xx` sensors stay, so their history continues.
+
 ### 📚 Documentation
 
 - ✅ **Confirmed:** `Data 06`–`Data 09` are the states of the relays

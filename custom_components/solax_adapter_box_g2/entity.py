@@ -5,8 +5,21 @@ from __future__ import annotations
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MANUFACTURER, MODEL
+from .const import DOMAIN, MANUFACTURER, MODEL, SOURCE_DATA
 from .coordinator import AdapterBoxCoordinator
+
+
+def data_number(coordinator: AdapterBoxCoordinator, index: int) -> int | float | None:
+    """Return Data[index] if it exists and is a number, else None (spec.md 6b)."""
+    if coordinator.data is None:
+        return None
+    values = coordinator.data.arrays.get(SOURCE_DATA, [])
+    if index >= len(values):
+        return None
+    value = values[index]
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return value
 
 
 class AdapterBoxEntity(CoordinatorEntity[AdapterBoxCoordinator]):

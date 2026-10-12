@@ -12,7 +12,7 @@ from .api import SolaxAdapterBoxClient
 from .const import DOMAIN
 from .coordinator import AdapterBoxCoordinator
 
-PLATFORMS: list[Platform] = [Platform.SENSOR]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR]
 
 # Set up through the UI only (spec.md 4).
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)

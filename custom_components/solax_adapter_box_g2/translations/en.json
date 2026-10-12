@@ -37,6 +37,11 @@
     }
   },
   "entity": {
+    "binary_sensor": {
+      "relay": {
+        "name": "Relay DO{number}"
+      }
+    },
     "sensor": {
       "raw_data": {
         "name": "Data {index}"
@@ -55,6 +60,18 @@
       },
       "device_kind": {
         "name": "Device kind"
+      },
+      "active_relays": {
+        "name": "Active relays"
+      },
+      "grid_power": {
+        "name": "Grid power"
+      },
+      "data13_power": {
+        "name": "Data 13 power"
+      },
+      "battery_soc": {
+        "name": "Battery"
       }
     }
   }

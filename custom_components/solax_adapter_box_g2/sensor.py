@@ -10,15 +10,22 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import EntityCategory
+from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfPower
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
 from . import AdapterBoxConfigEntry
-from .const import CLOCK_INDICES, SOURCE_DATA
+from .const import (
+    BATTERY_SOC_INDEX,
+    CLOCK_INDICES,
+    DATA13_INDEX,
+    GRID_POWER_INDEX,
+    RELAY_INDICES,
+    SOURCE_DATA,
+)
 from .coordinator import AdapterBoxCoordinator
-from .entity import AdapterBoxEntity
+from .entity import AdapterBoxEntity, data_number
 
 
 async def async_setup_entry(
@@ -48,6 +55,28 @@ async def async_setup_entry(
             DeviceTimeSensor(coordinator),
             TopLevelSensor(coordinator, "type", "device_type"),
             TopLevelSensor(coordinator, "devKind", "device_kind"),
+            ActiveRelaysSensor(coordinator),
+            DataValueSensor(
+                coordinator,
+                "grid_power",
+                GRID_POWER_INDEX,
+                UnitOfPower.WATT,
+                SensorDeviceClass.POWER,
+            ),
+            DataValueSensor(
+                coordinator,
+                "data13_power",
+                DATA13_INDEX,
+                UnitOfPower.WATT,
+                SensorDeviceClass.POWER,
+            ),
+            DataValueSensor(
+                coordinator,
+                "battery_soc",
+                BATTERY_SOC_INDEX,
+                PERCENTAGE,
+                SensorDeviceClass.BATTERY,
+            ),
         ]
     )
     _add_new_raw_sensors()
@@ -123,6 +152,64 @@ class TopLevelSensor(AdapterBoxEntity, SensorEntity):
     def native_value(self) -> Any:
         """Return the field's value."""
         return self.coordinator.data.realtime.get(self._field)
+
+
+class DataValueSensor(AdapterBoxEntity, SensorEntity):
+    """A decoded Data position with unit and device class (spec.md 6b)."""
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(
+        self,
+        coordinator: AdapterBoxCoordinator,
+        key: str,
+        index: int,
+        unit: str,
+        device_class: SensorDeviceClass,
+    ) -> None:
+        """Initialize the sensor; `key` is unique ID suffix and translation key."""
+        super().__init__(coordinator, key)
+        self._index = index
+        self._attr_translation_key = key
+        self._attr_native_unit_of_measurement = unit
+        self._attr_device_class = device_class
+
+    @property
+    def available(self) -> bool:
+        """Unavailable while the answer has no number at this position."""
+        return super().available and data_number(self.coordinator, self._index) is not None
+
+    @property
+    def native_value(self) -> int | float | None:
+        """Return the value as reported by the box."""
+        return data_number(self.coordinator, self._index)
+
+
+class ActiveRelaysSensor(AdapterBoxEntity, SensorEntity):
+    """Number of closed relays DO1-DO4 (spec.md 6b)."""
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_translation_key = "active_relays"
+
+    def __init__(self, coordinator: AdapterBoxCoordinator) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, "active_relays")
+
+    def _relays(self) -> list[int | float | None]:
+        return [data_number(self.coordinator, index) for index in RELAY_INDICES]
+
+    @property
+    def available(self) -> bool:
+        """Unavailable while a relay position is missing."""
+        return super().available and None not in self._relays()
+
+    @property
+    def native_value(self) -> int | None:
+        """Return how many relays are closed."""
+        relays = self._relays()
+        if None in relays:
+            return None
+        return sum(1 for value in relays if value == 1)
 
 
 def device_time(data: list[Any]) -> datetime | None:

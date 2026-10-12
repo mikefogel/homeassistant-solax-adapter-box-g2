@@ -249,17 +249,19 @@ Further findings from the research (sources in §3f):
 
 ### 3d. Decoded values
 
-Only **confirmed** values are decoded:
+Only **confirmed** values are decoded (entities in §6b):
 
-- `Data[0..5]` → device date and time (§6b).
-- `Data[6..9]` → relay states DO1–DO4; the entities follow in the next
-  step (§6c).
-- `Data[12]` → grid power in W (+ export, − import); the entity follows in
-  the next step (§6c).
-- `Data[14]` → battery SOC in %; the entity follows in the next step (§6c).
+- `Data[0..5]` → device date and time.
+- `Data[6..9]` → relay states DO1–DO4 and the number of closed relays.
+- `Data[12]` → grid power in W (+ export, − import).
+- `Data[14]` → battery SOC in %.
 
-A hypothesis becomes a decoded entity (e.g. one binary sensor per dry
-contact) only after it is confirmed with §7 and this table is updated.
+Exception on the user's request: `Data[13]` gets a power sensor in W
+although its meaning is still open (§3c), so it can be used in dashboards
+and statistics with the right unit.
+
+A hypothesis becomes a decoded entity only after it is confirmed with §7 and
+this table is updated.
 
 ### 3e. Operations used
 
@@ -376,12 +378,27 @@ sensor:
 - **Device time** (timestamp, diagnostic): `Data[0..5]` interpreted in Home
   Assistant's time zone; unknown when the values are not a valid date.
 
+| Entity (en / de)                     | Platform      | Source       | Unit | Device class | State class |
+|--------------------------------------|---------------|--------------|------|--------------|-------------|
+| Relay DO1 … DO4 / Relais DO1 … DO4   | binary sensor | `Data[6..9]` | –    | –            | –           |
+| Active relays / Aktive Relais        | sensor        | `Data[6..9]` | –    | –            | measurement |
+| Grid power / Netzleistung            | sensor        | `Data[12]`   | W    | power        | measurement |
+| Data 13 power / Data 13 Leistung     | sensor        | `Data[13]`   | W    | power        | measurement |
+| Battery / Akku-Ladestand             | sensor        | `Data[14]`   | %    | battery      | measurement |
+
+- **Relay DO*n***: *on* when the value is 1 (relay closed), *off* when it
+  is 0.
+- **Active relays**: the number of closed relays (0–4); with the observed
+  installation this is the stage of the heating rod (§3c).
+- **Grid power**: positive = export, negative = import, as the box reports
+  it (note: Home Assistant's energy dashboard expects the opposite sign for
+  a combined grid sensor).
+- Decoded entities are created at setup and are *unavailable* while the
+  answer has no numeric value at their position (e.g. a shorter `Data`
+  array). The raw value sensors (§6a) stay, so their history continues.
+
 ### 6c. Planned (after confirmation, §7)
 
-- one binary sensor per relay DO1–DO4 from `Data[6..9]` (confirmed, §3c),
-- grid power sensor (W, device class power, + export / − import) from
-  `Data[12]` (confirmed, §3c),
-- battery SOC sensor (%, device class battery) from `Data[14]` (confirmed, §3c),
 - analog output voltage, gear, mode, switch – as far as found.
 
 ## 7. Correlation support
@@ -441,6 +458,12 @@ The user cannot watch the box all the time. Therefore:
       sensor named after its index; clock indices are disabled by default.
 - [ ] Integer raw sensors carry `int16` and `bits` attributes.
 - [ ] *Device time* shows the box's clock.
+- [ ] Relay DO1–DO4 follow `Data[6..9]`; *Active relays* counts the closed
+      relays.
+- [ ] *Grid power* (W, signed), *Data 13 power* (W, signed) and *Battery*
+      (%) show `Data[12]`, `Data[13]` and `Data[14]` with unit and device
+      class.
+- [ ] Decoded entities are unavailable when their position is missing.
 - [ ] A longer array adds sensors without a reload.
 - [ ] When the box is unreachable, entities become unavailable and recover
       by themselves.

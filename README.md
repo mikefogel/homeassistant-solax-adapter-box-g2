@@ -23,6 +23,8 @@ box that switches heat pumps and water heaters through four dry contacts
   position in the box's answer, with long-term statistics.
 - Extra attributes `int16` (signed value) and `bits` (16-digit binary) on
   every integer value, to spot negative powers and packed status flags.
+- Decoded entities: *Relay DO1–DO4*, *Active relays*, *Grid power*,
+  *Data 13 power* and *Battery*.
 - *Device time* (the box's clock), *Device kind*, *Device type*.
 - Settings sensors (`Setting 00`, …) if the box answers `ReadSetData`
   (firmware `008.00` does not).
@@ -63,6 +65,18 @@ curl -d "optType=ReadRealTimeData&pwd=<registration number>" http://<IP address>
 ```
 
 ## Entities
+
+**Decoded entities**
+
+| Entity                | Meaning                                                    |
+|-----------------------|------------------------------------------------------------|
+| Relay DO1 – DO4       | on = relay closed (`Data 06`–`Data 09`)                    |
+| Active relays         | number of closed relays, 0–4 (e.g. the stage of a heating rod) |
+| Grid power            | W, + export / − import (`Data 12`) – note: the energy dashboard expects the opposite sign |
+| Data 13 power         | W, signed (`Data 13`) – meaning still open, see below      |
+| Battery               | battery SOC in % from the inverter (`Data 14`)             |
+
+**Raw value entities**
 
 | Entity              | Meaning                                                    |
 |---------------------|------------------------------------------------------------|
