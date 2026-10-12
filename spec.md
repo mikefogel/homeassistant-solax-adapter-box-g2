@@ -92,13 +92,34 @@ be checked with the procedure of §7, **unknown** = no idea yet):
 | 3     | 11       | confirmed  | device clock: day                                           |
 | 4     | 10       | confirmed  | device clock: month                                         |
 | 5     | 26       | confirmed  | device clock: year − 2000                                   |
-| 6–9   | 0        | hypothesis | dry contacts DO1–DO4 (0 = open, 1 = closed); SolaXCloud showed all four open at the same time. Alternative: one of them is the current step 0–15, with DO1–DO4 as its bits |
+| 6     | 0        | confirmed  | relay (dry contact) DO1: 0 = open, 1 = closed               |
+| 7     | 0        | confirmed  | relay (dry contact) DO2: 0 = open, 1 = closed               |
+| 8     | 0        | confirmed  | relay (dry contact) DO3: 0 = open, 1 = closed               |
+| 9     | 0        | confirmed  | relay (dry contact) DO4: 0 = open, 1 = closed               |
 | 10    | 0        | hypothesis | analog output voltage (the app showed 0 V), possibly scaled ÷10 or ÷100 |
 | 11    | 1        | unknown    | status value (0/1), e.g. the box status shown in the app    |
 | 12    | 0        | unknown    | status value (0/1)                                          |
 | 13    | 409      | unknown    | measurement, possibly scaled ÷10 (40.9) or ÷100 (4.09), or a power in W; may be the low word of a 32-bit value with index 14 |
 | 14    | 75       | hypothesis | battery SOC in % (the box receives it from the inverter for its SOC thresholds) |
 | 15–17 | 1, 0, 1  | unknown    | status values (0/1), e.g. mode (smart/manual), remote switch, schedule active |
+
+**Relays `Data[6..9]` – confirmed on 2026-10-12** on real hardware
+(firmware `008.00`): the four relays of the box drive solid-state relays
+(SSRs) that switch a heating rod in four stages. The power of the heating
+rod, measured with a Shelly Pro 3EM, follows the relay values exactly:
+
+| Stage | Relays closed      | `Data[6..9]` | Heating rod power (nominal) | Measured |
+|-------|--------------------|--------------|-----------------------------|----------|
+| 0     | none               | 0, 0, 0, 0   | off                         | 0 W      |
+| 1     | DO1                | 1, 0, 0, 0   | 400 W                       | ≈ 420 W  |
+| 2     | DO1, DO2           | 1, 1, 0, 0   | 1.5 kW                      | ≈ 1.6 kW |
+| 3     | DO1, DO2, DO3      | 1, 1, 1, 0   | 3 kW                        | ≈ 3.25 kW |
+| 4     | DO1, DO2, DO3, DO4 | 1, 1, 1, 1   | 4.5 kW                      | ≈ 4.75 kW |
+
+When stepping down, the box opened DO4, DO3 and DO2 one after another,
+about 10 seconds apart, and closed DO2 again 30 seconds later. The stage
+powers are a property of this installation, not of the box; the box only
+reports the relay states.
 
 Open questions about the clock: SolaXCloud reported its last update at
 22:41 on the same day, while the box reported 09:42. Either the request was
@@ -121,11 +142,12 @@ Further findings from the research (sources in §3f):
 
 - The SolaXCloud monitoring page of the box shows exactly three values:
   **status**, **analog output** and **current step of the dry contacts**.
-  These are the most likely contents of `Data[6..17]`.
+  The dry contacts are `Data[6..9]` (confirmed); status and analog output
+  are the most likely contents of `Data[10..17]`.
 - In SG Ready mode the SolaX solution document says only DO1 switches by
   default; the user manual allows up to 4 loads on DO1–DO4. The observed
-  installation has 4 water heaters (load IDs `…01`–`…04`), so all four
-  contacts are expected to be used.
+  installation has 4 loads of type *Water Heater* (load IDs `…01`–`…04`),
+  which together form the four stages of one heating rod (table above).
 - The box changes the step at most once about every 10 seconds; the default
   polling interval of 10 s (§4b) therefore sees every step.
 - A schedule (up to 6 time windows) has the highest priority over all other
@@ -150,6 +172,8 @@ Further findings from the research (sources in §3f):
 Only **confirmed** values are decoded:
 
 - `Data[0..5]` → device date and time (§6b).
+- `Data[6..9]` → relay states DO1–DO4; the entities follow in the next
+  step (§6c).
 
 A hypothesis becomes a decoded entity (e.g. one binary sensor per dry
 contact) only after it is confirmed with §7 and this table is updated.
@@ -268,7 +292,7 @@ sensor:
 
 ### 6c. Planned (after confirmation, §7)
 
-- one binary sensor per dry contact DO1–DO4,
+- one binary sensor per relay DO1–DO4 from `Data[6..9]` (confirmed, §3c),
 - analog output voltage, gear, mode, switch, battery SOC – as far as found.
 
 ## 7. Correlation support
@@ -341,7 +365,8 @@ The user cannot watch the box all the time. Therefore:
 - Get the complete `ReadRealTimeData` answer (the observed line was cut off
   after `Data`).
 - Find out whether the box answers `ReadSetData`.
-- Confirm or reject each hypothesis of §3c with the procedure of §7, then
-  add decoded entities (§6c).
+- Add the relay entities for the confirmed `Data[6..9]` (§6c).
+- Confirm or reject the remaining hypotheses of §3c (`Data[10..17]`) with
+  the procedure of §7, then add decoded entities (§6c).
 - Confirm that `devKind` 8 identifies the Adapter Box G2 (other SolaX
   devices would then be rejected or handled separately).

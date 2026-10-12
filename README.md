@@ -66,7 +66,8 @@ curl -d "optType=ReadRealTimeData&pwd=<registration number>" http://<IP address>
 | Entity              | Meaning                                                    |
 |---------------------|------------------------------------------------------------|
 | Data 00 – Data 05   | the box's clock (hour, minute, second, day, month, year); disabled by default |
-| Data 06 – Data 17   | not decoded yet – see [What we know](#what-we-know-so-far) |
+| Data 06 – Data 09   | relays DO1–DO4: 0 = open, 1 = closed (confirmed)           |
+| Data 10 – Data 17   | not decoded yet – see [What we know](#what-we-know-so-far) |
 | Information xx      | only if the box sends an `Information` array               |
 | Setting xx          | only if the box answers `ReadSetData`                      |
 | Device time         | `Data 00`–`Data 05` combined                               |
@@ -76,9 +77,9 @@ curl -d "optType=ReadRealTimeData&pwd=<registration number>" http://<IP address>
 
 Firmware `008.00`, see [spec.md §3c](spec.md) for details:
 
-| Value     | Example | Guess                                    |
+| Value     | Example | Meaning                                  |
 |-----------|---------|------------------------------------------|
-| Data 06–09 | 0      | dry contacts DO1–DO4 (0 = open, 1 = closed)? |
+| Data 06–09 | 0      | ✅ relays DO1–DO4 (0 = open, 1 = closed) – confirmed with SSRs on a 4-stage heating rod |
 | Data 10   | 0       | analog output voltage?                   |
 | Data 13   | 409     | a measurement (40.9 … or 409 W)?         |
 | Data 14   | 75      | battery SOC in %?                        |
@@ -98,7 +99,7 @@ make sure something *happens* at a time you know:
      off and on again, or
    - look at *Funktionssteuerung → Betriebszustand* when a dry contact is
      green, and note the time and which contact.
-3. **Check the history:** *History* → add the entities `Data 06` … `Data 17`
+3. **Check the history:** *History* → add the entities `Data 10` … `Data 17`
    → look for a value that changes at exactly that time.
 4. **Share the result:** download the history as CSV (*History* → ⋮ →
    *Download data*) and the diagnostics (device page → ⋮ → *Download

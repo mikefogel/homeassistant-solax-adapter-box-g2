@@ -8,6 +8,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ### 📚 Documentation
 
+- ✅ **Confirmed:** `Data 06`–`Data 09` are the states of the relays
+  DO1–DO4 (0 = open, 1 = closed), verified with SSRs switching a
+  four-stage heating rod.
 - 🔎 `spec.md` collects further research: what the SolaXCloud monitoring
   page shows (status, analog output, current step), how SolaX encodes
   numbers (÷10/÷100, signed 16-bit, 32-bit over two positions), and that
