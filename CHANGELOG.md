@@ -4,7 +4,11 @@ All notable changes to this integration are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.2.0] - 2026-10-12
+
+🌟 **Highlights:** a tidier device page – every value appears only once –
+and a new logo that shows what the box does: the sun feeds the adapter box,
+which drives your water heater.
 
 ### ⚠️ Please check after updating
 
