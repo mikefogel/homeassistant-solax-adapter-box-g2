@@ -4,6 +4,15 @@ All notable changes to this integration are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### 📚 Documentation
+
+- 🔍 Data 13 is now described as the box's likely own surplus calculation;
+  *Pgrid Bias* is ruled out as the cause of its −2100 W limit.
+- 🗣️ Hints from forums and the SolaX knowledge base added to the spec
+  (hysteresis, common COM terminal, analog output, grid data source).
+
 ## [0.2.0] - 2026-10-12
 
 🌟 **Highlights:** a tidier device page – every value appears only once –

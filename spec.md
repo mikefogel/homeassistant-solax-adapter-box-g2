@@ -103,7 +103,7 @@ be checked with the procedure of §7, **unknown** = no idea yet):
 | 10    | 0        | hypothesis | analog output voltage (the app showed 0 V), possibly scaled ÷10 or ÷100 |
 | 11    | 1        | unknown    | status value (0/1), e.g. the box status shown in the app    |
 | 12    | 0        | confirmed  | grid power in W, signed: positive = export, negative = import |
-| 13    | 409      | hypothesis | power in W, signed: = inverter AC power − *available PV power* of the SolaX EV charger (strong correlation, see below); not the battery power |
+| 13    | 409      | hypothesis | power in W, signed: = inverter AC power − *available PV power* of the SolaX EV charger (strong correlation, see below); plausibly the box's own surplus calculation; not the battery power |
 | 14    | 75       | confirmed  | battery SOC in %, received from the inverter (unscaled, 0–100) |
 | 15–17 | 1, 0, 1  | unknown    | status values (0/1); not the mode and not the remote switch (see below); `Data[15]` and `Data[17]` sometimes drop to 0 together for one sample |
 
@@ -163,6 +163,19 @@ integration and the SolaX EV charger integration:
   *Available PV Power* was 6.2 kW – a limit whose origin is unknown.
 - Rejected: `Data[13]` is **not** the battery power with inverted sign
   (14:00–16:00: battery ≈ 0 W while `Data[13]` was −2000 … +4000 W).
+- Interpretation (plausible, user assessment of 2026-10-12): `Data[13]` is
+  the box's own surplus calculation of the SolaX energy management – the
+  SolaX EV charger computes its *Available PV Power* the same way from the
+  same inverter data, which explains the strong correlation.
+- Checked on 2026-10-12 as causes of the −2100 W limit:
+  - *Pgrid Bias* (inverter setting, SolaXCloud: *Pgrid-Tendenz*) is
+    **disabled** (bias power 40 W configured, but inactive) – not the cause.
+  - The grid data source of the box is *Inverter*; there is no meter at the
+    box (the only meter is connected to the inverter), so the source cannot
+    be switched to *Meter* for a comparison.
+  - Still open: the inverter's export control (forum reports: an export
+    limit of 0 W makes the box switch erratically) and the box's own
+    thresholds.
 
 **Device clock – observed on 2026-10-12:** the box's clock runs exactly
 **4 hours behind** local time (Europe/Berlin, CEST = UTC+2): diagnostics
@@ -246,6 +259,27 @@ Further findings from the research (sources in §3f):
 - Risk: on some SolaX WiFi modules a firmware update removed the local API.
   Firmware `008.00` of the box answers it.
 
+Hints from forums and the SolaX knowledge base (**unconfirmed** unless
+stated; sources in §3f, collected on 2026-10-12). Nobody else reads the box
+locally; the forums only describe its behaviour:
+
+- Switching uses a **hysteresis** and a **minimum ON time** per load – also
+  described in the user manual (confirmed by the user). This explains why
+  the relays step down with delays instead of at a fixed threshold.
+- All four relays share **one COM terminal** (four normally-open contacts),
+  so all loads use the same control voltage.
+- Water heater with the **analog output**: the 0–10 V output drives a
+  voltage regulator module; example of SolaX: 5 V → 2.5 kW on a 5 kW
+  heater. Requires box firmware `007.01` or newer. Supports the hypothesis
+  that `Data[10]` is the analog output; confirmation needs a box running in
+  analog mode.
+- Smart mode did not switch for several users until the grid data source
+  was changed from *Inverter* to *Meter* (Grid) and/or the schedule was
+  deleted; *Pgrid Bias* and an export limit of 0 W can distort the
+  threshold calculation.
+- Some boxes need their own power supply; several setup problems were
+  solved by firmware updates.
+
 ### 3d. Decoded values
 
 Only **confirmed** values are decoded (entities in §6b):
@@ -297,6 +331,17 @@ Write operations (e.g. `setReg`) must never be sent.
   <https://global.solaxcloud.com/blue/4/user_api/2024/SolaXCloud_User_API_V2.pdf>
 - Local API removed by a firmware update on other SolaX modules:
   <https://neilturner.me.uk/2024/10/26/so-long-solax-local-api/>
+- SolaX KB, *Water Boiler in Adapter Box G2 System* (analog output):
+  <https://kb.solaxpower.com/solution/detail/8af1adf79288c0240192dc0c191b0c1a>
+- SolaX KB, *Pgrid Bias*:
+  <https://kb.solaxpower.com/solution/detail/ff808081899c15cb0189aa13ffca01c5>
+- Photovoltaikforum, *SolaX Adapter Box G2 – Probleme beim Einbinden*
+  (grid data source, thresholds, firmware):
+  <https://www.photovoltaikforum.com/thread/222088-solax-adapter-box-g2-probleme-beim-einbinden/>
+- Photovoltaikforum, *SolaX Adapter Box G2 – 2 Geräte steuern* (common COM):
+  <https://www.photovoltaikforum.com/thread/243222-solax-adapter-box-g2-2-ger%C3%A4te-steuern/>
+- Photovoltaikforum, *Wärmepumpensteuerung via Adapter Box G2*:
+  <https://www.photovoltaikforum.com/wissen/entry/98-solax-w%C3%A4rmepumpensteuerung-via-adapter-box-g2/>
 
 ## 4. Configuration
 
@@ -492,8 +537,9 @@ The user cannot watch the box all the time. Therefore:
 ## 11. Open items
 
 - Meaning of the `Information` array (§3b).
-- Meaning of `Data[13]` (relation to the EV charger's *Available PV Power*,
-  lower limit of about −2100 W).
+- Confirm `Data[13]` as the box's surplus calculation (§3c) and find the
+  cause of its lower limit of about −2100 W (*Pgrid Bias* ruled out;
+  export control and box thresholds open).
 - Meaning of `Data[10]`, `Data[11]`, `Data[15..17]`, including the cause of
   the joint short drops of `Data[15]` and `Data[17]`; then add decoded
   entities (§6c).

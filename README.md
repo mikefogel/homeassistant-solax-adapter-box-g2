@@ -116,9 +116,13 @@ Firmware `008.00`, see [spec.md §3c](spec.md) for details:
 | Data 06–09 | 0      | ✅ relays DO1–DO4 (0 = open, 1 = closed) – confirmed with SSRs on a 4-stage heating rod |
 | Data 10   | 0       | analog output voltage?                   |
 | Data 12   | 0       | ✅ grid power in W: + export, − import – confirmed against the inverter's Grid Export |
-| Data 13   | 409     | power in W ≈ inverter power − *Available PV Power* of the SolaX wallbox (strong correlation, meaning open) |
+| Data 13   | 409     | power in W ≈ inverter power − *Available PV Power* of the SolaX wallbox – plausibly the box's own surplus calculation (meaning not confirmed) |
 | Data 14   | 75      | ✅ battery SOC in %, from the inverter – confirmed against the inverter's Battery Capacity |
 | Data 11, 15–17 | 0/1 | status values (mode, switch, …)?       |
+
+Good to know about the box itself: all four relays share **one COM
+terminal**, and the box switches with a hysteresis and a minimum ON time per
+load – so relays step down with a delay, not at a fixed threshold.
 
 ## Help decode the values
 
