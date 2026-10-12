@@ -175,6 +175,20 @@ local time, PV decreasing, heating rod stepping down from stage 4 to 0),
 only `Data[6..9]`, `Data[12]`, `Data[13]` and `Data[14]` changed;
 `Data[10]` stayed 0 and `Data[11]`, `Data[15..17]` stayed 1, 0, 1.
 
+**History of 2026-10-12, 12:00–18:56 local time (CSV export):**
+
+- `Data[10]` stayed 0 all day (the installation uses the relays, not the
+  analog output).
+- `Information[9]` stayed 1 all day. It was only *unavailable* together
+  with all other sensors between 17:43 and 17:55 local time, when the box
+  did not answer for a few minutes (probably WLAN); the integration
+  reconnected on its own each time (§5).
+- `Data[15]` dropped to 0 for exactly one sample (18:51:15, back to 1 at
+  18:51:25 local time). Nobody operated the app or the box at that time;
+  the relays were already off. Hypothesis: a status flag such as
+  "communication with the inverter OK", where a single missed RS485 poll
+  shows as one 0. One event is not enough to confirm it.
+
 What the box must know internally (from the user manual, chapter 5), and
 which is therefore likely to appear in `Data` or `ReadSetData`:
 
