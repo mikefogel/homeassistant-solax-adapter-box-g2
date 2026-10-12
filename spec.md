@@ -77,7 +77,7 @@ list (§6a).
 
 | Field     | Observed   | Meaning                                                     |
 |-----------|------------|-------------------------------------------------------------|
-| `sn`      | SDXXXXXXXX | serial number = password; unique ID of the box (some SolaX devices send `SN`) |
+| `sn`      | SD…        | serial number = password; unique ID of the box (some SolaX devices send `SN`) |
 | `ver`     | 008.00     | firmware version (matches SolaXCloud)                       |
 | `type`    | 0          | unknown                                                     |
 | `devKind` | 8          | device kind; probably "Adapter Box" (to be confirmed)       |
