@@ -18,14 +18,16 @@ The local data format of the box is **not documented** by SolaX. The first
 goal of this integration is therefore to **record every value the box
 reports**, so that the meaning of each value can be found later by comparing
 its history with what SolaXCloud shows (§7). Values are given a decoded
-meaning (§3d) only once that meaning is confirmed on real hardware.
+meaning (§3d) only once that meaning is confirmed on real hardware (one
+exception on the user's request: `Data[13]`, §3d).
 
 ## 2. Core objectives
 
 - Talk to the box locally over its HTTP API (§3), without the cloud.
 - Configure everything through the Home Assistant UI (§4).
-- Expose **every** raw value of every response as its own sensor, so Home
-  Assistant's recorder keeps a complete, comparable history (§6a).
+- Record **every** value of every response – undecoded values as raw
+  sensors (§6a), decoded values as entities with unit and meaning (§6b) –
+  so Home Assistant's recorder keeps a complete, comparable history.
 - Decode values only where the meaning is certain (§3d, §6b); list
   everything else as an open hypothesis (§3c, §11).
 - **Read only.** The integration must never send a command that changes the
@@ -103,7 +105,7 @@ be checked with the procedure of §7, **unknown** = no idea yet):
 | 12    | 0        | confirmed  | grid power in W, signed: positive = export, negative = import |
 | 13    | 409      | hypothesis | power in W, signed: = inverter AC power − *available PV power* of the SolaX EV charger (strong correlation, see below); not the battery power |
 | 14    | 75       | confirmed  | battery SOC in %, received from the inverter (unscaled, 0–100) |
-| 15–17 | 1, 0, 1  | unknown    | status values (0/1), e.g. mode (smart/manual), remote switch, schedule active |
+| 15–17 | 1, 0, 1  | unknown    | status values (0/1); not the mode and not the remote switch (see below); `Data[15]` and `Data[17]` sometimes drop to 0 together for one sample |
 
 **Relays `Data[6..9]` – confirmed on 2026-10-12** on real hardware
 (firmware `008.00`): the four relays of the box drive solid-state relays
@@ -170,24 +172,18 @@ different time zone (UTC−2), not drifting. The *Device time* sensor (§6b)
 shows the clock as reported; it is not corrected. Whether schedules set in
 SolaXCloud are affected is unknown.
 
-**Unchanged values:** during one hour of diagnostics change log (17:46–18:46
-local time, PV decreasing, heating rod stepping down from stage 4 to 0),
-only `Data[6..9]`, `Data[12]`, `Data[13]` and `Data[14]` changed;
-`Data[10]` stayed 0 and `Data[11]`, `Data[15..17]` stayed 1, 0, 1.
-
-**History of 2026-10-12, 12:00–18:56 local time (CSV export):**
+**Rarely changing values – history of 2026-10-12, 12:00–19:16 local time**
+(CSV export and diagnostics change logs; PV rising and falling, heating rod
+stepping between stages 0 and 4):
 
 - `Data[10]` stayed 0 all day (the installation uses the relays, not the
   analog output).
-- `Information[9]` stayed 1 all day. It was only *unavailable* together
-  with all other sensors between 17:43 and 17:55 local time, when the box
-  did not answer for a few minutes (probably WLAN); the integration
-  reconnected on its own each time (§5).
-- `Data[15]` dropped to 0 for exactly one sample (18:51:15, back to 1 at
-  18:51:25 local time). Nobody operated the app or the box at that time;
-  the relays were already off. Hypothesis: a status flag such as
-  "communication with the inverter OK", where a single missed RS485 poll
-  shows as one 0. One event is not enough to confirm it.
+- `Data[11]`, `Data[16]` stayed 1 and 0 all day; `Data[15]` and `Data[17]`
+  stayed 1 except for the short drops in the table below.
+- `Information[9]` (and the whole `Information` array) stayed unchanged. It
+  was only *unavailable* together with all other sensors between 17:43 and
+  17:55 local time, when the box did not answer for a few minutes (probably
+  WLAN); the integration reconnected on its own each time (§5).
 
 **Settings changes in SolaXCloud – test of 2026-10-12 evening** (relays all
 open, diagnostics change logs 18:08–19:16:55 local time):
@@ -204,18 +200,21 @@ in the real-time data, neither as a lasting value nor as a short change;
 the box reports measurements and relay states, not its configuration
 (consistent with `ReadSetData` not being answered, §3e). `Data[15]` and
 `Data[17]` always drop to 0 **together** for one sample; the cause is open.
+Nobody operated the app at 18:51:15 and the relays were off. Hypothesis: a
+status flag such as "communication with the inverter OK", where a single
+missed RS485 poll shows as one 0.
 
 What the box must know internally (from the user manual, chapter 5), and
-which is therefore likely to appear in `Data` or `ReadSetData`:
+where it was found:
 
-- the state of the four dry contacts DO1–DO4 (shown in the app under
-  *Funktionssteuerung → Betriebszustand*),
-- the analog output voltage (0–10 V) and the current gear (0–15),
-- the mode (*Smart* or *Manual*) and the remote *Switch* (on/off),
-- grid data source (inverter or meter), feed-in power, consumption and
-  battery SOC from the inverter (for the SG Ready signal conditions),
-- per load (up to 4 in SG Ready mode): ON/OFF thresholds, minimum ON time,
-  maximum ON time per day.
+| Internal value                                   | Found in the local data              |
+|--------------------------------------------------|--------------------------------------|
+| state of the dry contacts DO1–DO4                | `Data[6..9]`                         |
+| grid power (feed-in / consumption)               | `Data[12]`                           |
+| battery SOC from the inverter                    | `Data[14]`                           |
+| analog output voltage (0–10 V), current gear (0–15) | not found yet (`Data[10]`?)       |
+| mode (*Smart*/*Manual*), remote *Switch*         | not visible (test above)             |
+| grid data source, per-load thresholds and times  | not visible; `ReadSetData` is not answered (§3e) |
 
 Further findings from the research (sources in §3f):
 
@@ -237,7 +236,7 @@ Further findings from the research (sources in §3f):
   voltages and currents scaled ÷10 or ÷100, negative values as signed 16-bit
   numbers (attribute `int16`, §6a), 32-bit values as two consecutive
   positions (low word first, then high word). The Adapter Box itself sends
-  negative values with a sign (confirmed for `Data[12]`).
+  negative values with a sign (`Data[12]`, `Data[13]`).
 - The inverter's Modbus map only reports whether the Adapter Box is
   connected (input register `0xA1`, 0 = disconnected, 1 = connected); it has
   no dry contact states. The box's own local API (§3a) is therefore the
@@ -274,10 +273,9 @@ this table is updated.
 firmware `008.00` does **not** answer it with JSON (confirmed 2026-10-12:
 `settings_supported: false` in the diagnostics). The request stays in the
 integration for other firmware versions: if its first answer is not a JSON
-object, the
-integration must log this once at INFO level and not send it again until the
-integration is reloaded. A connection error does not count as "not
-supported".
+object, the integration must log this once at INFO level and not send it
+again until the integration is reloaded. A connection error does not count
+as "not supported".
 
 Write operations (e.g. `setReg`) must never be sent.
 
@@ -358,7 +356,7 @@ twice. With firmware `008.00` this leaves the raw sensors `Data 10`,
 
 | Array                            | Entity name (en / de)              | Unique ID suffix |
 |----------------------------------|------------------------------------|------------------|
-| `Data` (`ReadRealTimeData`)      | Data 00 / Data 00                  | `data_00`        |
+| `Data` (`ReadRealTimeData`)      | Data 10 / Data 10                  | `data_10`        |
 | `Information` (`ReadRealTimeData`) | Information 00 / Information 00  | `info_00`        |
 | `Data` (`ReadSetData`)           | Setting 00 / Einstellung 00        | `set_00`         |
 
@@ -401,7 +399,7 @@ twice. With firmware `008.00` this leaves the raw sensors `Data 10`,
   a combined grid sensor).
 - Decoded entities are created at setup and are *unavailable* while the
   answer has no numeric value at their position (e.g. a shorter `Data`
-  array). The raw value sensors (§6a) stay, so their history continues.
+  array).
 
 ### 6c. Planned (after confirmation, §7)
 
@@ -411,7 +409,8 @@ twice. With firmware `008.00` this leaves the raw sensors `Data 10`,
 
 The user cannot watch the box all the time. Therefore:
 
-- The recorder history of the raw sensors (§6a) is the primary source. The
+- The recorder history of the raw and decoded sensors (§6) is the primary
+  source. The
   README explains how to export it (*History → Download data*) together
   with notes on what happened at the same time in SolaXCloud.
 - *Download diagnostics* must contain the last raw answers of both
@@ -483,12 +482,12 @@ The user cannot watch the box all the time. Therefore:
 ## 11. Open items
 
 - Meaning of the `Information` array (§3b).
-- Add the entities for the confirmed `Data[6..9]`, `Data[12]` and
-  `Data[14]` (§6c).
-- Find the meaning of `Data[13]` (relation to the EV charger's *Available
-  PV Power*, lower limit of about −2100 W).
-- Confirm or reject the remaining hypotheses of §3c (`Data[10]`,
-  `Data[11]`, `Data[13]`, `Data[15..17]`) with the procedure of §7, then add
-  decoded entities (§6c).
+- Meaning of `Data[13]` (relation to the EV charger's *Available PV Power*,
+  lower limit of about −2100 W).
+- Meaning of `Data[10]`, `Data[11]`, `Data[15..17]`, including the cause of
+  the joint short drops of `Data[15]` and `Data[17]`; then add decoded
+  entities (§6c).
+- Whether the device clock offset of 4 hours affects schedules set in
+  SolaXCloud (§3c).
 - Confirm that `devKind` 8 identifies the Adapter Box G2 (other SolaX
   devices would then be rejected or handled separately).
