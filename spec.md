@@ -98,7 +98,7 @@ be checked with the procedure of §7, **unknown** = no idea yet):
 | 9     | 0        | confirmed  | relay (dry contact) DO4: 0 = open, 1 = closed               |
 | 10    | 0        | hypothesis | analog output voltage (the app showed 0 V), possibly scaled ÷10 or ÷100 |
 | 11    | 1        | unknown    | status value (0/1), e.g. the box status shown in the app    |
-| 12    | 0        | unknown    | status value (0/1)                                          |
+| 12    | 0        | confirmed  | grid power in W, signed: positive = export, negative = import |
 | 13    | 409      | unknown    | measurement, possibly scaled ÷10 (40.9) or ÷100 (4.09), or a power in W (not part of a 32-bit pair with index 14, which is the SOC) |
 | 14    | 75       | confirmed  | battery SOC in %, received from the inverter (unscaled, 0–100) |
 | 15–17 | 1, 0, 1  | unknown    | status values (0/1), e.g. mode (smart/manual), remote switch, schedule active |
@@ -126,6 +126,18 @@ reports the relay states.
 `Data[14]` follows the inverter's *Battery Capacity* (SolaX inverter
 integration in Home Assistant) step by step and shows the same value. The
 box receives it from the inverter for its SOC thresholds.
+
+**Grid power `Data[12]` – confirmed on 2026-10-12:** from 06:00 to 18:30
+`Data[12]` follows the inverter's *Grid Export* (SolaX inverter integration
+in Home Assistant) peak for peak, up to about 6.4 kW, in watts without
+scaling. The inverter integration only shows export (never below 0);
+`Data[12]` also has negative values down to about −2.3 kW. These are grid
+import, caused by control delays when the PV surplus drops. So `Data[12]`
+is the signed grid power: positive = export, negative = import. The box
+sends negative values as negative JSON numbers (e.g. `-2300`), not as
+unsigned 16-bit numbers; the `int16` attribute (§6a) is therefore not needed
+for this value. The box uses this value for its feed-in and consumption
+thresholds (SG Ready signal conditions).
 
 Open questions about the clock: SolaXCloud reported its last update at
 22:41 on the same day, while the box reported 09:42. Either the request was
@@ -163,7 +175,8 @@ Further findings from the research (sources in §3f):
 - How SolaX encodes numbers elsewhere (EV charger, same local API):
   voltages and currents scaled ÷10 or ÷100, negative values as signed 16-bit
   numbers (attribute `int16`, §6a), 32-bit values as two consecutive
-  positions (low word first, then high word).
+  positions (low word first, then high word). The Adapter Box itself sends
+  negative values with a sign (confirmed for `Data[12]`).
 - The inverter's Modbus map only reports whether the Adapter Box is
   connected (input register `0xA1`, 0 = disconnected, 1 = connected); it has
   no dry contact states. The box's own local API (§3a) is therefore the
@@ -180,6 +193,8 @@ Only **confirmed** values are decoded:
 - `Data[0..5]` → device date and time (§6b).
 - `Data[6..9]` → relay states DO1–DO4; the entities follow in the next
   step (§6c).
+- `Data[12]` → grid power in W (+ export, − import); the entity follows in
+  the next step (§6c).
 - `Data[14]` → battery SOC in %; the entity follows in the next step (§6c).
 
 A hypothesis becomes a decoded entity (e.g. one binary sensor per dry
@@ -300,6 +315,8 @@ sensor:
 ### 6c. Planned (after confirmation, §7)
 
 - one binary sensor per relay DO1–DO4 from `Data[6..9]` (confirmed, §3c),
+- grid power sensor (W, device class power, + export / − import) from
+  `Data[12]` (confirmed, §3c),
 - battery SOC sensor (%, device class battery) from `Data[14]` (confirmed, §3c),
 - analog output voltage, gear, mode, switch – as far as found.
 
@@ -373,9 +390,10 @@ The user cannot watch the box all the time. Therefore:
 - Get the complete `ReadRealTimeData` answer (the observed line was cut off
   after `Data`).
 - Find out whether the box answers `ReadSetData`.
-- Add the entities for the confirmed `Data[6..9]` and `Data[14]` (§6c).
-- Confirm or reject the remaining hypotheses of §3c (`Data[10..13]`,
-  `Data[15..17]`) with
-  the procedure of §7, then add decoded entities (§6c).
+- Add the entities for the confirmed `Data[6..9]`, `Data[12]` and
+  `Data[14]` (§6c).
+- Confirm or reject the remaining hypotheses of §3c (`Data[10]`,
+  `Data[11]`, `Data[13]`, `Data[15..17]`) with the procedure of §7, then add
+  decoded entities (§6c).
 - Confirm that `devKind` 8 identifies the Adapter Box G2 (other SolaX
   devices would then be rejected or handled separately).

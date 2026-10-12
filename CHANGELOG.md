@@ -13,6 +13,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   four-stage heating rod.
 - ✅ **Confirmed:** `Data 14` is the battery SOC in % that the box receives
   from the inverter, verified against the inverter's *Battery Capacity*.
+- ✅ **Confirmed:** `Data 12` is the grid power in W – positive = export,
+  negative = import – verified against the inverter's *Grid Export*.
 - 🔎 `spec.md` collects further research: what the SolaXCloud monitoring
   page shows (status, analog output, current step), how SolaX encodes
   numbers (÷10/÷100, signed 16-bit, 32-bit over two positions), and that
