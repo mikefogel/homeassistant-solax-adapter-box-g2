@@ -15,11 +15,23 @@ and versions follow [Semantic Versioning](https://semver.org/).
   `sensor.adapter_box_g2_data_14`), switch it to the matching new entity.
   The history of the removed sensors is no longer shown.
 
+### ✨ Added
+
+- 🎨 **New logo and icon**: the sun feeds the adapter box, which drives a
+  water heater – light and dark variants, shown by Home Assistant 2026.3+
+  under *Settings → Devices & services*.
+
 ### 🔄 Changed
 
 - 🗂️ Raw `Data xx` sensors exist only for values that are not decoded yet
   (`Data 10`, `Data 11`, `Data 15`–`Data 17`), so every value appears only
   once on the device page.
+
+### 📚 Documentation
+
+- ⚖️ README starts with a disclaimer (independent and unofficial, not
+  affiliated with SolaX) and ends with *Third-party documentation* and
+  *Trademarks* sections; the new logo is shown as banner.
 
 ## [0.1.0] - 2026-10-12
 

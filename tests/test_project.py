@@ -38,10 +38,22 @@ def test_every_flow_error_is_translated() -> None:
 
 
 def test_brand_icons() -> None:
-    """The brand icons have the sizes HACS and Home Assistant expect."""
-    for name, size in (("icon.png", 256), ("icon@2x.png", 512)):
-        with Image.open(INTEGRATION / "brand" / name) as image:
-            assert image.size == (size, size)
+    """The brand icons have the sizes HACS and Home Assistant expect (spec.md 9)."""
+    for prefix in ("", "dark_"):
+        for name, size in ((f"{prefix}icon.png", 256), (f"{prefix}icon@2x.png", 512)):
+            with Image.open(INTEGRATION / "brand" / name) as image:
+                assert image.size == (size, size), name
+
+
+def test_brand_logos() -> None:
+    """Logos are landscape with a height of 128 / 256 px, light and dark (spec.md 9)."""
+    for prefix in ("", "dark_"):
+        for name, height in ((f"{prefix}logo.png", 128), (f"{prefix}logo@2x.png", 256)):
+            with Image.open(INTEGRATION / "brand" / name) as image:
+                width, actual_height = image.size
+                assert actual_height == height, name
+                assert width > height, name
+                assert image.mode == "RGBA", name
 
 
 def test_manifest() -> None:
