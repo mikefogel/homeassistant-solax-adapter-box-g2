@@ -99,7 +99,7 @@ be checked with the procedure of §7, **unknown** = no idea yet):
 | 10    | 0        | hypothesis | analog output voltage (the app showed 0 V), possibly scaled ÷10 or ÷100 |
 | 11    | 1        | unknown    | status value (0/1), e.g. the box status shown in the app    |
 | 12    | 0        | confirmed  | grid power in W, signed: positive = export, negative = import |
-| 13    | 409      | unknown    | measurement, possibly scaled ÷10 (40.9) or ÷100 (4.09), or a power in W (not part of a 32-bit pair with index 14, which is the SOC) |
+| 13    | 409      | hypothesis | power in W, signed: = inverter AC power − *available PV power* of the SolaX EV charger (strong correlation, see below); not the battery power |
 | 14    | 75       | confirmed  | battery SOC in %, received from the inverter (unscaled, 0–100) |
 | 15–17 | 1, 0, 1  | unknown    | status values (0/1), e.g. mode (smart/manual), remote switch, schedule active |
 
@@ -138,6 +138,27 @@ sends negative values as negative JSON numbers (e.g. `-2300`), not as
 unsigned 16-bit numbers; the `int16` attribute (§6a) is therefore not needed
 for this value. The box uses this value for its feed-in and consumption
 thresholds (SG Ready signal conditions).
+
+**`Data[13]` – strong correlation found on 2026-10-12, meaning open.**
+Compared by hand at more than 20 points of a full day (CSV export of the
+Home Assistant history, 06:00–18:30 local time) with the SolaX inverter
+integration and the SolaX EV charger integration:
+
+- `Data[13]` ≈ *Inverter Power* − *Available PV Power*, almost always
+  within 50 W. *Available PV Power* is register `0x18` (signed, W) of the
+  SolaX EV charger: the PV surplus the SolaX energy management considers
+  available. The box and the EV charger share the inverter's RS485 bus
+  (the box has a split RS485 port for EV chargers), so both very likely
+  get their values from the same source.
+- While the battery charges or discharges, *Available PV Power* is about 0
+  and `Data[13]` ≈ *Inverter Power* (e.g. 07:34 UTC: −481 vs −406 W while
+  the battery charged with +4.3 kW).
+- Once the battery is full, `Data[13]` ≈ *Inverter Power* − *Available PV
+  Power* (e.g. 13:00 UTC: 3113 − 5158 = −2045, `Data[13]` = −2029).
+- `Data[13]` never went below about −2100 W during the day, even when
+  *Available PV Power* was 6.2 kW – a limit whose origin is unknown.
+- Rejected: `Data[13]` is **not** the battery power with inverted sign
+  (14:00–16:00: battery ≈ 0 W while `Data[13]` was −2000 … +4000 W).
 
 Open questions about the clock: SolaXCloud reported its last update at
 22:41 on the same day, while the box reported 09:42. Either the request was
@@ -392,6 +413,8 @@ The user cannot watch the box all the time. Therefore:
 - Find out whether the box answers `ReadSetData`.
 - Add the entities for the confirmed `Data[6..9]`, `Data[12]` and
   `Data[14]` (§6c).
+- Find the meaning of `Data[13]` (relation to the EV charger's *Available
+  PV Power*, lower limit of about −2100 W).
 - Confirm or reject the remaining hypotheses of §3c (`Data[10]`,
   `Data[11]`, `Data[13]`, `Data[15..17]`) with the procedure of §7, then add
   decoded entities (§6c).

@@ -86,7 +86,7 @@ Firmware `008.00`, see [spec.md §3c](spec.md) for details:
 | Data 06–09 | 0      | ✅ relays DO1–DO4 (0 = open, 1 = closed) – confirmed with SSRs on a 4-stage heating rod |
 | Data 10   | 0       | analog output voltage?                   |
 | Data 12   | 0       | ✅ grid power in W: + export, − import – confirmed against the inverter's Grid Export |
-| Data 13   | 409     | a measurement (40.9 … or 409 W)?         |
+| Data 13   | 409     | power in W ≈ inverter power − *Available PV Power* of the SolaX wallbox (strong correlation, meaning open) |
 | Data 14   | 75      | ✅ battery SOC in %, from the inverter – confirmed against the inverter's Battery Capacity |
 | Data 11, 15–17 | 0/1 | status values (mode, switch, …)?       |
 

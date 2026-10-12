@@ -15,6 +15,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
   from the inverter, verified against the inverter's *Battery Capacity*.
 - ✅ **Confirmed:** `Data 12` is the grid power in W – positive = export,
   negative = import – verified against the inverter's *Grid Export*.
+- 🔬 **Finding:** `Data 13` is a signed power in W that follows *inverter
+  power − Available PV Power* of the SolaX wallbox within about 50 W over a
+  whole day; it is not the battery power. Its exact meaning is still open.
 - 🔎 `spec.md` collects further research: what the SolaXCloud monitoring
   page shows (status, analog output, current step), how SolaX encodes
   numbers (÷10/÷100, signed 16-bit, 32-bit over two positions), and that
