@@ -5,3 +5,4 @@ __pycache__/
 .claude/
 .venv-latest/
 ci.md
+config_entry-*.json

@@ -24,7 +24,8 @@ box that switches heat pumps and water heaters through four dry contacts
 - Extra attributes `int16` (signed value) and `bits` (16-digit binary) on
   every integer value, to spot negative powers and packed status flags.
 - *Device time* (the box's clock), *Device kind*, *Device type*.
-- Settings sensors (`Setting 00`, …) if the box answers `ReadSetData`.
+- Settings sensors (`Setting 00`, …) if the box answers `ReadSetData`
+  (firmware `008.00` does not).
 - *Download diagnostics* with the raw answers and a log of the last 500
   value changes.
 - Automatic recovery after connection loss.
@@ -73,7 +74,7 @@ curl -d "optType=ReadRealTimeData&pwd=<registration number>" http://<IP address>
 | Data 14             | battery SOC in %, from the inverter (confirmed)            |
 | Data 15 – Data 17   | not decoded yet – see [What we know](#what-we-know-so-far) |
 | Information xx      | only if the box sends an `Information` array               |
-| Setting xx          | only if the box answers `ReadSetData`                      |
+| Setting xx          | only if the box answers `ReadSetData` (not firmware 008.00) |
 | Device time         | `Data 00`–`Data 05` combined                               |
 | Device kind / type  | `devKind` and `type` of the answer                         |
 

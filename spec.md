@@ -66,10 +66,12 @@ A JSON object. Observed on 2026-10-11 (firmware `008.00`):
  "Data":[9,42,22,11,10,26,0,0,0,0,0,1,0,409,75,1,0,1], ...}
 ```
 
-The response continues after `Data` (the line ended with a comma); other
-SolaX devices send an `Information` array there. The integration must
-accept any further top-level fields, and must record `Information` the same
-way as `Data` when it is a list (§6a).
+The response continues after `Data` with an `Information` array of 10
+mixed values (confirmed 2026-10-12 via diagnostics):
+`[0.0, 0, "", 1, 1.0, 1.0, 1.0, 0.0, 0.0, 1]` – unchanged over the observed
+hour, meaning unknown. The integration must accept any further top-level
+fields, and must record `Information` the same way as `Data` when it is a
+list (§6a).
 
 | Field     | Observed   | Meaning                                                     |
 |-----------|------------|-------------------------------------------------------------|
@@ -160,10 +162,18 @@ integration and the SolaX EV charger integration:
 - Rejected: `Data[13]` is **not** the battery power with inverted sign
   (14:00–16:00: battery ≈ 0 W while `Data[13]` was −2000 … +4000 W).
 
-Open questions about the clock: SolaXCloud reported its last update at
-22:41 on the same day, while the box reported 09:42. Either the request was
-made in the morning or the device clock is wrong; the *Device time* sensor
-(§6b) answers this.
+**Device clock – observed on 2026-10-12:** the box's clock runs exactly
+**4 hours behind** local time (Europe/Berlin, CEST = UTC+2): diagnostics
+downloaded at about 18:46:20 local time contained `Data[0..5]` =
+14:46:18 on 12.10.26. Minutes and seconds match, so the clock is set to a
+different time zone (UTC−2), not drifting. The *Device time* sensor (§6b)
+shows the clock as reported; it is not corrected. Whether schedules set in
+SolaXCloud are affected is unknown.
+
+**Unchanged values:** during one hour of diagnostics change log (17:46–18:46
+local time, PV decreasing, heating rod stepping down from stage 4 to 0),
+only `Data[6..9]`, `Data[12]`, `Data[13]` and `Data[14]` changed;
+`Data[10]` stayed 0 and `Data[11]`, `Data[15..17]` stayed 1, 0, 1.
 
 What the box must know internally (from the user manual, chapter 5), and
 which is therefore likely to appear in `Data` or `ReadSetData`:
@@ -228,8 +238,11 @@ contact) only after it is confirmed with §7 and this table is updated.
 | `ReadRealTimeData` | real-time values (§3b)       | every polling cycle                   |
 | `ReadSetData`      | settings (read only)         | every 6th polling cycle, if supported |
 
-`ReadSetData` is known from SolaX EV chargers. Whether the Adapter Box
-answers it is unknown: if its first answer is not a JSON object, the
+`ReadSetData` is known from SolaX EV chargers. The Adapter Box G2 with
+firmware `008.00` does **not** answer it with JSON (confirmed 2026-10-12:
+`settings_supported: false` in the diagnostics). The request stays in the
+integration for other firmware versions: if its first answer is not a JSON
+object, the
 integration must log this once at INFO level and not send it again until the
 integration is reloaded. A connection error does not count as "not
 supported".
@@ -408,9 +421,7 @@ The user cannot watch the box all the time. Therefore:
 
 ## 11. Open items
 
-- Get the complete `ReadRealTimeData` answer (the observed line was cut off
-  after `Data`).
-- Find out whether the box answers `ReadSetData`.
+- Meaning of the `Information` array (§3b).
 - Add the entities for the confirmed `Data[6..9]`, `Data[12]` and
   `Data[14]` (§6c).
 - Find the meaning of `Data[13]` (relation to the EV charger's *Available

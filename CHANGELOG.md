@@ -18,6 +18,10 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - 🔬 **Finding:** `Data 13` is a signed power in W that follows *inverter
   power − Available PV Power* of the SolaX wallbox within about 50 W over a
   whole day; it is not the battery power. Its exact meaning is still open.
+- 🕰️ **Finding:** the box's clock runs 4 hours behind local time (CEST);
+  *Device time* shows it as reported.
+- ⚙️ **Finding:** firmware `008.00` does not answer `ReadSetData`, so there
+  are no `Setting xx` sensors.
 - 🔎 `spec.md` collects further research: what the SolaXCloud monitoring
   page shows (status, analog output, current step), how SolaX encodes
   numbers (÷10/÷100, signed 16-bit, 32-bit over two positions), and that
