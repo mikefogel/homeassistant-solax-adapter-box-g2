@@ -22,6 +22,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   *Device time* shows it as reported.
 - ⚙️ **Finding:** firmware `008.00` does not answer `ReadSetData`, so there
   are no `Setting xx` sensors.
+- 🔍 **Finding:** mode (Smart/Manual) and the remote switch set in
+  SolaXCloud are not visible in the local data.
 - 🔎 `spec.md` collects further research: what the SolaXCloud monitoring
   page shows (status, analog output, current step), how SolaX encodes
   numbers (÷10/÷100, signed 16-bit, 32-bit over two positions), and that

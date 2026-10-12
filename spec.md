@@ -189,6 +189,22 @@ only `Data[6..9]`, `Data[12]`, `Data[13]` and `Data[14]` changed;
   "communication with the inverter OK", where a single missed RS485 poll
   shows as one 0. One event is not enough to confirm it.
 
+**Settings changes in SolaXCloud – test of 2026-10-12 evening** (relays all
+open, diagnostics change logs 18:08–19:16:55 local time):
+
+| Local time | Action in SolaXCloud          | Reaction in the local data            |
+|------------|-------------------------------|---------------------------------------|
+| 18:51:15   | none                          | `Data[15]` and `Data[17]` 0 for one sample |
+| 19:06:45   | unknown (possibly mode → Manual) | `Data[15]` and `Data[17]` 0 for one sample |
+| 19:14:01   | mode → Smart                  | none                                  |
+| 19:16:02   | remote *Switch* → off         | none                                  |
+
+Result: the mode (Smart/Manual) and the remote *Switch* are **not visible**
+in the real-time data, neither as a lasting value nor as a short change;
+the box reports measurements and relay states, not its configuration
+(consistent with `ReadSetData` not being answered, §3e). `Data[15]` and
+`Data[17]` always drop to 0 **together** for one sample; the cause is open.
+
 What the box must know internally (from the user manual, chapter 5), and
 which is therefore likely to appear in `Data` or `ReadSetData`:
 
