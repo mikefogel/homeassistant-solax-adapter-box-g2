@@ -4,7 +4,7 @@ All notable changes to this integration are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.1.0] - 2026-10-12
 
 🌟 **Highlights:** the first decoded entities – relays, grid power and
 battery with proper units, ready for dashboards and automations.
