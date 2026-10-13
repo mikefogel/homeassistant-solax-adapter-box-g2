@@ -6,15 +6,22 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### 🐛 Fixed
+## [0.2.1] - 2026-10-14
 
-- 🌐 When the box cannot be reached, Home Assistant now shows a translated
-  message (English/German) instead of the raw technical error.
+🌟 **Highlights:** everything the integration shows is now in English and
+German – including error messages and attribute names.
 
 ### ✨ Added
 
 - 🏷️ The `int16` and `bits` attributes of the raw sensors have translated
-  names.
+  names (*Signed value (int16)* / *Wert mit Vorzeichen (int16)*,
+  *Bit pattern* / *Bitmuster*).
+
+### 🐛 Fixed
+
+- 🌐 When the box cannot be reached or answers without data, Home Assistant
+  now shows a translated message instead of the raw technical error. The
+  details are still written to the debug log.
 
 ### 📚 Documentation
 

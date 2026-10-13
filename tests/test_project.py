@@ -76,7 +76,7 @@ def test_manifest() -> None:
     manifest = json.loads((INTEGRATION / "manifest.json").read_text("utf-8"))
     assert manifest["domain"] == DOMAIN
     assert manifest["config_flow"] is True
-    assert manifest["version"] == "0.2.0"
+    assert manifest["version"] == "0.2.1"
 
 
 def test_config_schema_is_config_entry_only() -> None:
