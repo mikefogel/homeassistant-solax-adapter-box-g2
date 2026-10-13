@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import timedelta
 from unittest.mock import AsyncMock
 
+import pytest
+
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
@@ -12,7 +14,7 @@ from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry, async_fire_time_changed
 
-from custom_components.solax_adapter_box_g2.api import CannotConnect
+from custom_components.solax_adapter_box_g2.api import CannotConnect, InvalidResponse
 from custom_components.solax_adapter_box_g2.const import DOMAIN
 from custom_components.solax_adapter_box_g2.sensor import device_time, raw_attributes
 
@@ -200,6 +202,29 @@ async def test_connection_loss_and_recovery(
     mock_client.read_realtime.side_effect = None
     await _next_poll(hass)
     assert hass.states.get(entity_id).state == "75"
+
+
+@pytest.mark.parametrize(
+    ("error", "key"),
+    [(CannotConnect("down"), "cannot_connect"), (InvalidResponse("y"), "invalid_response")],
+)
+async def test_polling_errors_are_translated(
+    hass: HomeAssistant,
+    mock_client: AsyncMock,
+    config_entry: MockConfigEntry,
+    error: Exception,
+    key: str,
+) -> None:
+    """A failed poll carries a translation key, not the raw error text (spec.md 8)."""
+    await _setup(hass, config_entry)
+
+    mock_client.read_realtime.side_effect = error
+    await _next_poll(hass)
+
+    exc = config_entry.runtime_data.last_exception
+    assert exc.translation_domain == DOMAIN
+    assert exc.translation_key == key
+    assert str(error) not in str(exc)
 
 
 async def test_unreachable_at_startup_retries(

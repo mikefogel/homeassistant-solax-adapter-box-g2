@@ -413,6 +413,7 @@ twice. With firmware `008.00` this leaves the raw sensors `Data 10`,
 - Integer values 0–65535 have two extra attributes, recorded with the
   history: `int16` (the value as signed 16-bit number, for negative powers)
   and `bits` (16-digit binary, for status words that pack several flags).
+  Both attribute names are translated (English and German).
 - Raw sensors of decoded positions that exist from earlier versions
   (up to 0.1.0) are removed from Home Assistant's entity registry when the
   integration is set up, so no orphaned entities remain. Their recorded
@@ -478,13 +479,18 @@ The user cannot watch the box all the time. Therefore:
 - Errors in the setup and options flow are shown with translated messages
   (§4a). Background polling never shows an error in the UI; it makes the
   entities unavailable (§5).
+- A failed poll raises `UpdateFailed` with a translation key
+  (`cannot_connect`, `invalid_response`; section `exceptions` of the
+  translations). Home Assistant shows this message, e.g. when setup is
+  retried; the raw error text goes to the debug log only.
 - Diagnostics and logs must never contain the password.
 
 ## 9. Packaging, tests, and release
 
 - Domain `solax_adapter_box_g2`, `iot_class: local_polling`, no external
   Python requirements; translations in English and German with exactly the
-  same keys.
+  same keys. Every text shown in the UI (names, attributes, flows, errors)
+  must exist in both languages.
 - Set up through the UI only: YAML configuration is rejected
   (`CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)`).
 - Brand images inside the integration (`brand/`, used by Home Assistant

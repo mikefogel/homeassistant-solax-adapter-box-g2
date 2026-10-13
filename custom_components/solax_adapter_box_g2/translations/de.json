@@ -44,13 +44,37 @@
     },
     "sensor": {
       "raw_data": {
-        "name": "Data {index}"
+        "name": "Data {index}",
+        "state_attributes": {
+          "int16": {
+            "name": "Wert mit Vorzeichen (int16)"
+          },
+          "bits": {
+            "name": "Bitmuster"
+          }
+        }
       },
       "raw_info": {
-        "name": "Information {index}"
+        "name": "Information {index}",
+        "state_attributes": {
+          "int16": {
+            "name": "Wert mit Vorzeichen (int16)"
+          },
+          "bits": {
+            "name": "Bitmuster"
+          }
+        }
       },
       "raw_set": {
-        "name": "Einstellung {index}"
+        "name": "Einstellung {index}",
+        "state_attributes": {
+          "int16": {
+            "name": "Wert mit Vorzeichen (int16)"
+          },
+          "bits": {
+            "name": "Bitmuster"
+          }
+        }
       },
       "device_time": {
         "name": "Gerätezeit"
@@ -73,6 +97,14 @@
       "battery_soc": {
         "name": "Akku-Ladestand"
       }
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {
+      "message": "Die Box ist nicht erreichbar. Home Assistant versucht es weiter."
+    },
+    "invalid_response": {
+      "message": "Die Box hat geantwortet, aber keine Daten geliefert. Bitte die Registrierungsnummer prüfen."
     }
   }
 }

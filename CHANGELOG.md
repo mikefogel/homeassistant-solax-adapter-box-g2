@@ -6,6 +6,16 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### 🐛 Fixed
+
+- 🌐 When the box cannot be reached, Home Assistant now shows a translated
+  message (English/German) instead of the raw technical error.
+
+### ✨ Added
+
+- 🏷️ The `int16` and `bits` attributes of the raw sensors have translated
+  names.
+
 ### 📚 Documentation
 
 - 🔍 Data 13 is now described as the box's likely own surplus calculation;

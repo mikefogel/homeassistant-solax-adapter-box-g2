@@ -85,7 +85,10 @@ class AdapterBoxCoordinator(DataUpdateCoordinator[AdapterBoxData]):
         try:
             realtime = await self.client.async_read_realtime()
         except SolaxAdapterBoxError as err:
-            raise UpdateFailed(str(err)) from err
+            # The UI shows a translated message, the details go to the log (spec.md 8).
+            _LOGGER.debug("Reading the box failed: %s", err)
+            key = "invalid_response" if isinstance(err, InvalidResponse) else "cannot_connect"
+            raise UpdateFailed(translation_domain=DOMAIN, translation_key=key) from err
 
         settings = self.data.settings if self.data else None
         if self.settings_supported is not False and self._cycle % SETTINGS_POLL_EVERY == 0:

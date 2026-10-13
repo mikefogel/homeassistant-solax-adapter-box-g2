@@ -44,13 +44,37 @@
     },
     "sensor": {
       "raw_data": {
-        "name": "Data {index}"
+        "name": "Data {index}",
+        "state_attributes": {
+          "int16": {
+            "name": "Signed value (int16)"
+          },
+          "bits": {
+            "name": "Bit pattern"
+          }
+        }
       },
       "raw_info": {
-        "name": "Information {index}"
+        "name": "Information {index}",
+        "state_attributes": {
+          "int16": {
+            "name": "Signed value (int16)"
+          },
+          "bits": {
+            "name": "Bit pattern"
+          }
+        }
       },
       "raw_set": {
-        "name": "Setting {index}"
+        "name": "Setting {index}",
+        "state_attributes": {
+          "int16": {
+            "name": "Signed value (int16)"
+          },
+          "bits": {
+            "name": "Bit pattern"
+          }
+        }
       },
       "device_time": {
         "name": "Device time"
@@ -73,6 +97,14 @@
       "battery_soc": {
         "name": "Battery"
       }
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {
+      "message": "The box cannot be reached. Home Assistant keeps trying."
+    },
+    "invalid_response": {
+      "message": "The box answered, but not with data. Check the registration number."
     }
   }
 }

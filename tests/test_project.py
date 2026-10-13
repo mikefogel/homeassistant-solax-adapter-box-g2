@@ -37,6 +37,21 @@ def test_every_flow_error_is_translated() -> None:
     assert set(errors) == {"cannot_connect", "invalid_response", "unknown"}
 
 
+def test_every_exception_is_translated() -> None:
+    """Errors shown in the UI have a message in both languages (spec.md 8)."""
+    for language in ("en", "de"):
+        exceptions = _translation(language)["exceptions"]
+        assert set(exceptions) == {"cannot_connect", "invalid_response"}, language
+
+
+def test_raw_value_attributes_are_translated() -> None:
+    """The int16 and bits attributes have translated names (spec.md 6a)."""
+    for language in ("en", "de"):
+        sensors = _translation(language)["entity"]["sensor"]
+        for key in ("raw_data", "raw_info", "raw_set"):
+            assert set(sensors[key]["state_attributes"]) == {"int16", "bits"}, (language, key)
+
+
 def test_brand_icons() -> None:
     """The brand icons have the sizes HACS and Home Assistant expect (spec.md 9)."""
     for prefix in ("", "dark_"):
